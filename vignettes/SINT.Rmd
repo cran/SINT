@@ -1,0 +1,377 @@
+---
+title: "Using SINT"
+output: rmarkdown::html_vignette
+bibliography: references.bib
+vignette: >
+  %\VignetteIndexEntry{Using SINT}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(SINT)
+```
+
+This guide shows how to specify, analyze and simulate social influence
+network models with SINT. It is organized by task: each section answers one
+practical question and can be read on its own after the first two.
+
+## The model
+
+SINT is built around the Friedkin-Johnsen model of social influence
+[@friedkin1990; @friedkin1999]. A group of $n$ agents holds opinions
+$y(t) \in \mathbb{R}^n$ that evolve in discrete time as
+
+$$y(t+1) = \Lambda W y(t) + (I - \Lambda) y(0),$$
+
+where $W = [w_{ij}]$ is the influence matrix, $w_{ij}$ being the weight that
+agent $i$ gives to the opinion of agent $j$, and
+$\Lambda = \mathrm{diag}(\lambda_1, \dots, \lambda_n)$ collects the
+susceptibilities. Each agent combines the opinions of others, with weight
+$\lambda_i$, and its own initial opinion, with weight $1 - \lambda_i$. With
+$\Lambda = I$ the model reduces to the consensus model of @degroot1974.
+
+The package has three layers, which can be used separately:
+
+1. the latent dynamics above, analyzed in closed form (`fj_check()`,
+   `fj_equilibrium()`, `fj_influence()`) or simulated (`fj_simulate()`,
+   `sint_simulate()`);
+2. an optional response stage that maps latent opinions to manifest
+   responses (`response_logistic()`, `response_threshold()`,
+   `climate_balance()`);
+3. an aggregation stage that maps manifest responses to a collective outcome
+   (`aggregate_quota()`).
+
+## Specifying a model
+
+A model is given by a square matrix `W`, a vector of susceptibilities
+`lambda` and a vector of initial opinions `y0`. When `W` is non-negative it
+must be row-stochastic. Influence weights are often easier to state on an
+arbitrary scale and then normalize with `row_normalize()`:
+
+```{r specify}
+raw <- matrix(c(3, 1, 0, 0,
+                1, 2, 1, 0,
+                0, 1, 2, 1,
+                0, 0, 1, 3), nrow = 4, byrow = TRUE,
+              dimnames = list(LETTERS[1:4], LETTERS[1:4]))
+W <- row_normalize(raw)
+W
+
+lambda <- c(0.9, 0.6, 0.6, 0.9)
+y0 <- c(0, 0.3, 0.7, 1)
+```
+
+`lambda` may also be a single number, which is recycled. A susceptibility of
+0 makes an agent fully anchored to its initial opinion; a susceptibility of 1
+makes it fully open to influence. Row and column names of `W` are carried to
+the results.
+
+Network data stored as `igraph` graphs or `network` objects can be converted
+with `influence_matrix()`, which extracts the adjacency matrix, optionally
+valued with an edge attribute, and normalizes its rows. By default an edge
+from $i$ to $j$ means that $i$ attends to $j$; use
+`direction = "influence"` when edges point from the influencing agent to the
+influenced one. Agents without ties are given a unit self-weight, with a
+warning.
+
+```{r specify-igraph, eval = requireNamespace("igraph", quietly = TRUE)}
+g <- igraph::graph_from_adjacency_matrix(raw, mode = "directed",
+                                         weighted = TRUE)
+all.equal(influence_matrix(g, weights = "weight"), W)
+```
+
+## Checking convergence
+
+`fj_check()` validates the inputs and reports the spectral radius of
+$\Lambda W$ and its infinity norm:
+
+```{r check}
+fj_check(W, lambda)
+```
+
+When the spectral radius is below one, $(I - \Lambda W)$ is invertible and
+the dynamics converge to a unique fixed point from any initial condition;
+`converges` is then `TRUE`. The infinity norm is an upper bound for the
+spectral radius and equals $\max_i \lambda_i$ when `W` is row-stochastic, so
+$\lambda_i < 1$ for all agents is sufficient for convergence. It is not
+necessary: agents with $\lambda_i = 1$ are allowed as long as the influence
+of anchored agents reaches them.
+
+```{r check-partial}
+fj_check(W, c(1, 1, 0.5, 1))$converges
+```
+
+In the DeGroot case no agent is anchored, the spectral radius is one and
+there is no unique fixed point:
+
+```{r check-degroot}
+fj_check(W, 1)$converges
+```
+
+## Computing equilibria and total influence
+
+The fixed point is
+
+$$y^* = (I - \Lambda W)^{-1} (I - \Lambda) y(0) = V y(0),$$
+
+and `fj_equilibrium()` computes it directly:
+
+```{r equilibrium}
+fj_equilibrium(W, lambda, y0)
+```
+
+The matrix $V = (I - \Lambda W)^{-1} (I - \Lambda)$, returned by
+`fj_influence()`, gives the total effect of each initial opinion (columns) on
+each equilibrium opinion (rows), after all direct and indirect paths of
+influence have been accounted for:
+
+```{r influence}
+V <- fj_influence(W, lambda)
+round(V, 3)
+```
+
+When `W` is non-negative the rows of `V` sum to one, so each equilibrium
+opinion is a weighted average of the initial opinions. The diagonal of `V`
+shows how much of its own initial opinion each agent retains, and the column
+sums summarize how much each agent's initial opinion contributes to the
+equilibrium opinions of the group:
+
+```{r influence-summary}
+rowSums(V)
+diag(V)
+colSums(V)
+```
+
+Both functions stop with an error when the dynamics do not converge.
+
+## Reproducing a published example
+
+@parsegov2017 analyze a group of four actors whose influence matrix was
+reconstructed from experimental data with the method of @friedkin1999. The
+susceptibilities follow the coupling condition
+$\Lambda = I - \mathrm{diag}(W)$, and actor 3, with $w_{33} = 1$, is
+totally stubborn:
+
+```{r published}
+W_p <- matrix(c(0.220, 0.120, 0.360, 0.300,
+                0.147, 0.215, 0.344, 0.294,
+                0,     0,     1,     0,
+                0.090, 0.178, 0.446, 0.286), nrow = 4, byrow = TRUE)
+lambda_p <- 1 - diag(W_p)
+lambda_p
+```
+
+The authors consider opinions on two independent issues, with initial
+opinions $(25, 25, 75, 85)$ and $(25, 15, -50, 5)$, and report the
+equilibria $(60, 60, 75, 75)$ and $(-19.3, -21.5, -50, -23.2)$. Since the
+issues are independent, each is a separate Friedkin-Johnsen model:
+
+```{r published-equilibria}
+round(fj_equilibrium(W_p, lambda_p, c(25, 25, 75, 85)), 1)
+round(fj_equilibrium(W_p, lambda_p, c(25, 15, -50, 5)), 1)
+```
+
+The results agree with the published values up to their rounding. The
+package test suite checks this example.
+
+## Simulating trajectories
+
+`fj_simulate()` iterates the dynamics until the largest change between two
+steps falls below `tol` or `max_steps` is reached, and returns the whole
+trajectory:
+
+```{r simulate, fig.width = 6, fig.height = 4}
+sim <- fj_simulate(W, lambda, y0)
+sim$steps
+sim$converged
+tail(sim$trajectory, 1)
+
+matplot(0:sim$steps, sim$trajectory, type = "l", lty = 1,
+        xlab = "t", ylab = "opinion")
+```
+
+Unlike `fj_equilibrium()`, `fj_simulate()` also runs when the dynamics do
+not converge to a unique fixed point. In the DeGroot case it shows the
+approach to consensus:
+
+```{r simulate-degroot}
+tail(fj_simulate(W, 1, y0, max_steps = 5000)$trajectory, 1)
+```
+
+## Working with signed networks
+
+Negative weights represent antagonistic ties, through which an agent moves
+away from the opinion of another [@altafini_2013]. A signed `W` is accepted
+when the absolute values in each row sum to at most one, and
+`row_normalize()` produces such a matrix from signed raw weights:
+
+```{r signed}
+raw_signed <- matrix(c( 3,  1, -1,  0,
+                        1,  2,  0, -1,
+                       -1,  0,  2,  1,
+                        0, -1,  1,  3), nrow = 4, byrow = TRUE)
+Ws <- row_normalize(raw_signed)
+fj_check(Ws, lambda)
+fj_equilibrium(Ws, lambda, y0)
+```
+
+With signed weights the rows of $V$ need not sum to one, equilibrium
+opinions are no longer weighted averages of the initial opinions and may
+fall outside their range. The convergence criterion is the same.
+
+## Representing external sources
+
+A source whose opinion does not change, such as a media outlet or an
+advocacy organization, is an agent with susceptibility 0 and a unit
+self-weight. Its row in `W` is a row of the identity matrix, so it
+influences others without being influenced:
+
+```{r source}
+raw_src <- cbind(raw, S = c(2, 0, 0, 0))
+raw_src <- rbind(raw_src, S = c(0, 0, 0, 0, 1))
+W_src <- row_normalize(raw_src)
+lambda_src <- c(lambda, 0)
+y0_src <- c(y0, 1)
+names(y0_src) <- rownames(W_src)
+
+fj_equilibrium(W_src, lambda_src, y0_src)
+```
+
+The source holds opinion 1 and pulls agent A, and through A the rest of the
+group, towards it.
+
+## Making influence depend on time and state
+
+`sint_simulate()` accepts `W` and `lambda` either as fixed objects or as
+functions with arguments `(t, y, P)`, where `t` is the current time, `y` the
+current latent opinions and `P` the current manifest responses (`NULL` when
+there is no response stage). Each function must return a valid input for
+`fj_check()`. The simulation runs for a fixed number of `steps`. When `W` is
+a function, agent names are taken from `y0`.
+
+Here the source is active only at times 1 to 3, when it raises agent A's
+susceptibility:
+
+```{r time}
+lambda_campaign <- function(t, y, P) {
+  if ((t + 1) %in% 1:3) c(0.98, 0.6, 0.6, 0.9, 0) else lambda_src
+}
+sim_t <- sint_simulate(W_src, lambda_campaign, y0_src, steps = 8)
+round(sim_t$y, 3)
+```
+
+The function receives the current time `t` and returns the susceptibilities
+used to compute $y(t+1)$, hence the test on `t + 1`.
+
+## Adding a response stage
+
+Latent opinions need not coincide with what agents express. A response
+function maps the latent state to manifest responses. SINT provides two
+constructors, which return functions with arguments `(t, y, P)`.
+
+`response_logistic()` gives binary responses with
+$\Pr(P_i = 1) = \mathrm{logit}^{-1}(\beta_i (y_i - \delta) + \gamma_i S_i)$,
+where $S_i$ is a normative pressure. With `stochastic = FALSE` it returns the
+probabilities:
+
+```{r logistic}
+f_log <- response_logistic(beta = 6, delta = 0.5, stochastic = FALSE)
+round(f_log(1, y = c(0.1, 0.5, 0.9), P = NULL), 3)
+
+set.seed(1)
+f_bin <- response_logistic(beta = 6, delta = 0.5)
+f_bin(1, y = c(0.1, 0.5, 0.9), P = NULL)
+```
+
+`response_threshold()` gives ternary responses: with
+$z_i = \beta_i (y_i - \delta) + \gamma_i S_i$, agent $i$ expresses $+1$ if
+$z_i > \theta$, $-1$ if $z_i < -\theta$, and stays silent (0) otherwise. With
+`stochastic = TRUE` a logistic error is added to $z_i$, which gives an
+ordered logit model:
+
+```{r threshold}
+f_thr <- response_threshold(delta = 0.5, theta = 0.3)
+f_thr(1, y = c(0.1, 0.5, 0.9), P = NULL)
+```
+
+The pressure `S` can be a number, a vector with one value per agent, or a
+function of the previous manifest responses. `climate_balance()` computes
+the balance between expressed support and opposition,
+$(n^+ - n^-) / (n^+ + n^- + \epsilon)$, and is designed for this use:
+
+```{r climate}
+f_clim <- response_threshold(delta = 0.5, theta = 0.3, gamma = 0.4,
+                             S = function(P) climate_balance(P, eps = 0.1))
+f_clim(1, y = c(0.45, 0.5, 0.55), P = NULL)
+f_clim(1, y = c(0.45, 0.5, 0.55), P = c(1, 1, 1))
+```
+
+In a simulation, pass the response function to `sint_simulate()`. Response
+functions apply to all agents, so a wrapper is useful when some agents, such
+as external sources, should not respond:
+
+```{r response-sim}
+agents <- 1:4
+f_group <- response_threshold(
+  delta = 0.5, theta = 0.3, gamma = 0.4,
+  S = function(P) climate_balance(P[agents], eps = 0.1)
+)
+respond <- function(t, y, P) {
+  out <- f_group(t, y, P)
+  out[-agents] <- 0L
+  out
+}
+sim_r <- sint_simulate(W_src, lambda_campaign, y0_src, steps = 8,
+                       response = respond)
+sim_r$P[, agents]
+```
+
+The manifest state can in turn shape influence. In this variant agents give
+more weight to others who express an opinion than to silent ones:
+
+```{r visibility}
+W_visible <- function(t, y, P) {
+  visibility <- 0.2 + 0.8 * abs(P)
+  row_normalize(sweep(raw_src, 2, visibility, `*`))
+}
+sim_v <- sint_simulate(W_visible, lambda_campaign, y0_src, steps = 8,
+                       response = respond)
+sim_v$P[, agents]
+```
+
+## Aggregating outcomes
+
+`aggregate_quota()` maps manifest responses to a collective outcome. It
+returns 1 when the number of responses equal to 1 exceeds a quota of the
+group, and 0 otherwise; abstentions and opposing responses count as not in
+favor. Applied to a matrix, it returns one outcome per time step:
+
+```{r aggregate}
+aggregate_quota(sim_r$P[, agents])
+aggregate_quota(sim_r$P[, agents], quota = 3 / 4)
+```
+
+## Timing conventions in `sint_simulate()`
+
+At each step from $t$ to $t + 1$, `sint_simulate()`:
+
+1. calls `W(t, y, P)` and `lambda(t, y, P)` with the state at time $t$;
+2. computes $y(t+1) = \Lambda(t) W(t) y(t) + (I - \Lambda(t)) y(0)$;
+3. calls `response(t + 1, y, P)` with the new latent state $y(t+1)$ and the
+   previous manifest state $P(t)$.
+
+When `P0` is not supplied, the initial manifest state is
+`response(0, y0, NULL)`. Response functions built with `response_logistic()`
+or `response_threshold()` treat a functional pressure as 0 when there is no
+previous manifest state. The anchor $y(0)$ is always the initial opinion
+vector `y0`.
+
+## References

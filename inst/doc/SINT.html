@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Using SINT</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Using SINT</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(SINT)</span></code></pre></div>
+<p>This guide shows how to specify, analyze and simulate social
+influence network models with SINT. It is organized by task: each
+section answers one practical question and can be read on its own after
+the first two.</p>
+<div id="the-model" class="section level2">
+<h2>The model</h2>
+<p>SINT is built around the Friedkin-Johnsen model of social influence
+<span class="citation">(Friedkin and Johnsen 1990, 1999)</span>. A group
+of <span class="math inline">\(n\)</span> agents holds opinions <span class="math inline">\(y(t) \in \mathbb{R}^n\)</span> that evolve in
+discrete time as</p>
+<p><span class="math display">\[y(t+1) = \Lambda W y(t) + (I - \Lambda)
+y(0),\]</span></p>
+<p>where <span class="math inline">\(W = [w_{ij}]\)</span> is the
+influence matrix, <span class="math inline">\(w_{ij}\)</span> being the
+weight that agent <span class="math inline">\(i\)</span> gives to the
+opinion of agent <span class="math inline">\(j\)</span>, and <span class="math inline">\(\Lambda = \mathrm{diag}(\lambda_1, \dots,
+\lambda_n)\)</span> collects the susceptibilities. Each agent combines
+the opinions of others, with weight <span class="math inline">\(\lambda_i\)</span>, and its own initial opinion,
+with weight <span class="math inline">\(1 - \lambda_i\)</span>. With
+<span class="math inline">\(\Lambda = I\)</span> the model reduces to
+the consensus model of <span class="citation">DeGroot (1974)</span>.</p>
+<p>The package has three layers, which can be used separately:</p>
+<ol style="list-style-type: decimal">
+<li>the latent dynamics above, analyzed in closed form
+(<code>fj_check()</code>, <code>fj_equilibrium()</code>,
+<code>fj_influence()</code>) or simulated (<code>fj_simulate()</code>,
+<code>sint_simulate()</code>);</li>
+<li>an optional response stage that maps latent opinions to manifest
+responses (<code>response_logistic()</code>,
+<code>response_threshold()</code>, <code>climate_balance()</code>);</li>
+<li>an aggregation stage that maps manifest responses to a collective
+outcome (<code>aggregate_quota()</code>).</li>
+</ol>
+</div>
+<div id="specifying-a-model" class="section level2">
+<h2>Specifying a model</h2>
+<p>A model is given by a square matrix <code>W</code>, a vector of
+susceptibilities <code>lambda</code> and a vector of initial opinions
+<code>y0</code>. When <code>W</code> is non-negative it must be
+row-stochastic. Influence weights are often easier to state on an
+arbitrary scale and then normalize with
+<code>row_normalize()</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>raw <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>,</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>                <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">0</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>                <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">1</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>                <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">3</span>), <span class="at">nrow =</span> <span class="dv">4</span>, <span class="at">byrow =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>              <span class="at">dimnames =</span> <span class="fu">list</span>(LETTERS[<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>], LETTERS[<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>]))</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>W <span class="ot">&lt;-</span> <span class="fu">row_normalize</span>(raw)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>W</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt;      A    B    C    D</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; A 0.75 0.25 0.00 0.00</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; B 0.25 0.50 0.25 0.00</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; C 0.00 0.25 0.50 0.25</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt; D 0.00 0.00 0.25 0.75</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>lambda <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.9</span>, <span class="fl">0.6</span>, <span class="fl">0.6</span>, <span class="fl">0.9</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>y0 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.3</span>, <span class="fl">0.7</span>, <span class="dv">1</span>)</span></code></pre></div>
+<p><code>lambda</code> may also be a single number, which is recycled. A
+susceptibility of 0 makes an agent fully anchored to its initial
+opinion; a susceptibility of 1 makes it fully open to influence. Row and
+column names of <code>W</code> are carried to the results.</p>
+<p>Network data stored as <code>igraph</code> graphs or
+<code>network</code> objects can be converted with
+<code>influence_matrix()</code>, which extracts the adjacency matrix,
+optionally valued with an edge attribute, and normalizes its rows. By
+default an edge from <span class="math inline">\(i\)</span> to <span class="math inline">\(j\)</span> means that <span class="math inline">\(i\)</span> attends to <span class="math inline">\(j\)</span>; use
+<code>direction = &quot;influence&quot;</code> when edges point from the
+influencing agent to the influenced one. Agents without ties are given a
+unit self-weight, with a warning.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>g <span class="ot">&lt;-</span> igraph<span class="sc">::</span><span class="fu">graph_from_adjacency_matrix</span>(raw, <span class="at">mode =</span> <span class="st">&quot;directed&quot;</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>                                         <span class="at">weighted =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">influence_matrix</span>(g, <span class="at">weights =</span> <span class="st">&quot;weight&quot;</span>), W)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+</div>
+<div id="checking-convergence" class="section level2">
+<h2>Checking convergence</h2>
+<p><code>fj_check()</code> validates the inputs and reports the spectral
+radius of <span class="math inline">\(\Lambda W\)</span> and its
+infinity norm:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">fj_check</span>(W, lambda)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt; $n</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; [1] 4</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; $signed</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; [1] FALSE</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; $spectral_radius</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; [1] 0.7779211</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; $norm_inf</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt; [1] 0.9</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt; $converges</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>When the spectral radius is below one, <span class="math inline">\((I
+- \Lambda W)\)</span> is invertible and the dynamics converge to a
+unique fixed point from any initial condition; <code>converges</code> is
+then <code>TRUE</code>. The infinity norm is an upper bound for the
+spectral radius and equals <span class="math inline">\(\max_i
+\lambda_i\)</span> when <code>W</code> is row-stochastic, so <span class="math inline">\(\lambda_i &lt; 1\)</span> for all agents is
+sufficient for convergence. It is not necessary: agents with <span class="math inline">\(\lambda_i = 1\)</span> are allowed as long as the
+influence of anchored agents reaches them.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">fj_check</span>(W, <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="fl">0.5</span>, <span class="dv">1</span>))<span class="sc">$</span>converges</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>In the DeGroot case no agent is anchored, the spectral radius is one
+and there is no unique fixed point:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">fj_check</span>(W, <span class="dv">1</span>)<span class="sc">$</span>converges</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
+</div>
+<div id="computing-equilibria-and-total-influence" class="section level2">
+<h2>Computing equilibria and total influence</h2>
+<p>The fixed point is</p>
+<p><span class="math display">\[y^* = (I - \Lambda W)^{-1} (I - \Lambda)
+y(0) = V y(0),\]</span></p>
+<p>and <code>fj_equilibrium()</code> computes it directly:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">fj_equilibrium</span>(W, lambda, y0)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt;         A         B         C         D </span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; 0.2505155 0.3618557 0.6381443 0.7494845</span></span></code></pre></div>
+<p>The matrix <span class="math inline">\(V = (I - \Lambda W)^{-1} (I -
+\Lambda)\)</span>, returned by <code>fj_influence()</code>, gives the
+total effect of each initial opinion (columns) on each equilibrium
+opinion (rows), after all direct and indirect paths of influence have
+been accounted for:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>V <span class="ot">&lt;-</span> <span class="fu">fj_influence</span>(W, lambda)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">round</span>(V, <span class="dv">3</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt;       A     B     C     D</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; A 0.365 0.496 0.125 0.014</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; B 0.083 0.716 0.180 0.021</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; C 0.021 0.180 0.716 0.083</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt; D 0.014 0.125 0.496 0.365</span></span></code></pre></div>
+<p>When <code>W</code> is non-negative the rows of <code>V</code> sum to
+one, so each equilibrium opinion is a weighted average of the initial
+opinions. The diagonal of <code>V</code> shows how much of its own
+initial opinion each agent retains, and the column sums summarize how
+much each agent’s initial opinion contributes to the equilibrium
+opinions of the group:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">rowSums</span>(V)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; A B C D </span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; 1 1 1 1</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="fu">diag</span>(V)</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt;         A         B         C         D </span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; 0.3649129 0.7163171 0.7163171 0.3649129</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="fu">colSums</span>(V)</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt;         A         B         C         D </span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; 0.4827586 1.5172414 1.5172414 0.4827586</span></span></code></pre></div>
+<p>Both functions stop with an error when the dynamics do not
+converge.</p>
+</div>
+<div id="reproducing-a-published-example" class="section level2">
+<h2>Reproducing a published example</h2>
+<p><span class="citation">Parsegov et al. (2017)</span> analyze a group
+of four actors whose influence matrix was reconstructed from
+experimental data with the method of <span class="citation">Friedkin and
+Johnsen (1999)</span>. The susceptibilities follow the coupling
+condition <span class="math inline">\(\Lambda = I -
+\mathrm{diag}(W)\)</span>, and actor 3, with <span class="math inline">\(w_{33} = 1\)</span>, is totally stubborn:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>W_p <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.220</span>, <span class="fl">0.120</span>, <span class="fl">0.360</span>, <span class="fl">0.300</span>,</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>                <span class="fl">0.147</span>, <span class="fl">0.215</span>, <span class="fl">0.344</span>, <span class="fl">0.294</span>,</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>                <span class="dv">0</span>,     <span class="dv">0</span>,     <span class="dv">1</span>,     <span class="dv">0</span>,</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>                <span class="fl">0.090</span>, <span class="fl">0.178</span>, <span class="fl">0.446</span>, <span class="fl">0.286</span>), <span class="at">nrow =</span> <span class="dv">4</span>, <span class="at">byrow =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>lambda_p <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">diag</span>(W_p)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>lambda_p</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt; [1] 0.780 0.785 0.000 0.714</span></span></code></pre></div>
+<p>The authors consider opinions on two independent issues, with initial
+opinions <span class="math inline">\((25, 25, 75, 85)\)</span> and <span class="math inline">\((25, 15, -50, 5)\)</span>, and report the
+equilibria <span class="math inline">\((60, 60, 75, 75)\)</span> and
+<span class="math inline">\((-19.3, -21.5, -50, -23.2)\)</span>. Since
+the issues are independent, each is a separate Friedkin-Johnsen
+model:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">fj_equilibrium</span>(W_p, lambda_p, <span class="fu">c</span>(<span class="dv">25</span>, <span class="dv">25</span>, <span class="dv">75</span>, <span class="dv">85</span>)), <span class="dv">1</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co">#&gt; [1] 60 60 75 75</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">fj_equilibrium</span>(W_p, lambda_p, <span class="fu">c</span>(<span class="dv">25</span>, <span class="dv">15</span>, <span class="sc">-</span><span class="dv">50</span>, <span class="dv">5</span>)), <span class="dv">1</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="co">#&gt; [1] -19.3 -21.5 -50.0 -23.2</span></span></code></pre></div>
+<p>The results agree with the published values up to their rounding. The
+package test suite checks this example.</p>
+</div>
+<div id="simulating-trajectories" class="section level2">
+<h2>Simulating trajectories</h2>
+<p><code>fj_simulate()</code> iterates the dynamics until the largest
+change between two steps falls below <code>tol</code> or
+<code>max_steps</code> is reached, and returns the whole trajectory:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>sim <span class="ot">&lt;-</span> <span class="fu">fj_simulate</span>(W, lambda, y0)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>sim<span class="sc">$</span>steps</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#&gt; [1] 67</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>sim<span class="sc">$</span>converged</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="fu">tail</span>(sim<span class="sc">$</span>trajectory, <span class="dv">1</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&gt;               A         B         C         D</span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co">#&gt; [68,] 0.2505155 0.3618557 0.6381443 0.7494845</span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="fu">matplot</span>(<span class="dv">0</span><span class="sc">:</span>sim<span class="sc">$</span>steps, sim<span class="sc">$</span>trajectory, <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, <span class="at">lty =</span> <span class="dv">1</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>        <span class="at">xlab =</span> <span class="st">&quot;t&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;opinion&quot;</span>)</span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+<p>Unlike <code>fj_equilibrium()</code>, <code>fj_simulate()</code> also
+runs when the dynamics do not converge to a unique fixed point. In the
+DeGroot case it shows the approach to consensus:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">tail</span>(<span class="fu">fj_simulate</span>(W, <span class="dv">1</span>, y0, <span class="at">max_steps =</span> <span class="dv">5000</span>)<span class="sc">$</span>trajectory, <span class="dv">1</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co">#&gt;          A   B   C   D</span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co">#&gt; [131,] 0.5 0.5 0.5 0.5</span></span></code></pre></div>
+</div>
+<div id="working-with-signed-networks" class="section level2">
+<h2>Working with signed networks</h2>
+<p>Negative weights represent antagonistic ties, through which an agent
+moves away from the opinion of another <span class="citation">(Altafini
+2013)</span>. A signed <code>W</code> is accepted when the absolute
+values in each row sum to at most one, and <code>row_normalize()</code>
+produces such a matrix from signed raw weights:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>raw_signed <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>( <span class="dv">3</span>,  <span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>,  <span class="dv">0</span>,</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>                        <span class="dv">1</span>,  <span class="dv">2</span>,  <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>,</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>                       <span class="sc">-</span><span class="dv">1</span>,  <span class="dv">0</span>,  <span class="dv">2</span>,  <span class="dv">1</span>,</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>                        <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>,  <span class="dv">1</span>,  <span class="dv">3</span>), <span class="at">nrow =</span> <span class="dv">4</span>, <span class="at">byrow =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>Ws <span class="ot">&lt;-</span> <span class="fu">row_normalize</span>(raw_signed)</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="fu">fj_check</span>(Ws, lambda)</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#&gt; $n</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt; [1] 4</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt; $signed</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt; $spectral_radius</span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt; [1] 0.7698571</span></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&gt; $norm_inf</span></span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a><span class="co">#&gt; [1] 0.9</span></span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="co">#&gt; $converges</span></span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a><span class="fu">fj_equilibrium</span>(Ws, lambda, y0)</span>
+<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a><span class="co">#&gt; [1] -0.18943519  0.04365821  0.52777036  0.40682649</span></span></code></pre></div>
+<p>With signed weights the rows of <span class="math inline">\(V\)</span> need not sum to one, equilibrium
+opinions are no longer weighted averages of the initial opinions and may
+fall outside their range. The convergence criterion is the same.</p>
+</div>
+<div id="representing-external-sources" class="section level2">
+<h2>Representing external sources</h2>
+<p>A source whose opinion does not change, such as a media outlet or an
+advocacy organization, is an agent with susceptibility 0 and a unit
+self-weight. Its row in <code>W</code> is a row of the identity matrix,
+so it influences others without being influenced:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>raw_src <span class="ot">&lt;-</span> <span class="fu">cbind</span>(raw, <span class="at">S =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>))</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>raw_src <span class="ot">&lt;-</span> <span class="fu">rbind</span>(raw_src, <span class="at">S =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>))</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>W_src <span class="ot">&lt;-</span> <span class="fu">row_normalize</span>(raw_src)</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>lambda_src <span class="ot">&lt;-</span> <span class="fu">c</span>(lambda, <span class="dv">0</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>y0_src <span class="ot">&lt;-</span> <span class="fu">c</span>(y0, <span class="dv">1</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="fu">names</span>(y0_src) <span class="ot">&lt;-</span> <span class="fu">rownames</span>(W_src)</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="fu">fj_equilibrium</span>(W_src, lambda_src, y0_src)</span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co">#&gt;         A         B         C         D         S </span></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a><span class="co">#&gt; 0.6700585 0.4568813 0.6620540 0.7660374 1.0000000</span></span></code></pre></div>
+<p>The source holds opinion 1 and pulls agent A, and through A the rest
+of the group, towards it.</p>
+</div>
+<div id="making-influence-depend-on-time-and-state" class="section level2">
+<h2>Making influence depend on time and state</h2>
+<p><code>sint_simulate()</code> accepts <code>W</code> and
+<code>lambda</code> either as fixed objects or as functions with
+arguments <code>(t, y, P)</code>, where <code>t</code> is the current
+time, <code>y</code> the current latent opinions and <code>P</code> the
+current manifest responses (<code>NULL</code> when there is no response
+stage). Each function must return a valid input for
+<code>fj_check()</code>. The simulation runs for a fixed number of
+<code>steps</code>. When <code>W</code> is a function, agent names are
+taken from <code>y0</code>.</p>
+<p>Here the source is active only at times 1 to 3, when it raises agent
+A’s susceptibility:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>lambda_campaign <span class="ot">&lt;-</span> <span class="cf">function</span>(t, y, P) {</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>  <span class="cf">if</span> ((t <span class="sc">+</span> <span class="dv">1</span>) <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) <span class="fu">c</span>(<span class="fl">0.98</span>, <span class="fl">0.6</span>, <span class="fl">0.6</span>, <span class="fl">0.9</span>, <span class="dv">0</span>) <span class="cf">else</span> lambda_src</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>}</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>sim_t <span class="ot">&lt;-</span> <span class="fu">sint_simulate</span>(W_src, lambda_campaign, y0_src, <span class="at">steps =</span> <span class="dv">8</span>)</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="fu">round</span>(sim_t<span class="sc">$</span>y, <span class="dv">3</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a><span class="co">#&gt;           A     B     C     D S</span></span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a><span class="co">#&gt;  [1,] 0.000 0.300 0.700 1.000 1</span></span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a><span class="co">#&gt;  [2,] 0.376 0.315 0.685 0.932 1</span></span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a><span class="co">#&gt;  [3,] 0.562 0.374 0.673 0.884 1</span></span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="co">#&gt;  [4,] 0.663 0.417 0.670 0.848 1</span></span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a><span class="co">#&gt;  [5,] 0.661 0.445 0.671 0.823 1</span></span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a><span class="co">#&gt;  [6,] 0.664 0.453 0.672 0.807 1</span></span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a><span class="co">#&gt;  [7,] 0.667 0.456 0.670 0.795 1</span></span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a><span class="co">#&gt;  [8,] 0.669 0.458 0.669 0.788 1</span></span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a><span class="co">#&gt;  [9,] 0.669 0.458 0.667 0.782 1</span></span></code></pre></div>
+<p>The function receives the current time <code>t</code> and returns the
+susceptibilities used to compute <span class="math inline">\(y(t+1)\)</span>, hence the test on
+<code>t + 1</code>.</p>
+</div>
+<div id="adding-a-response-stage" class="section level2">
+<h2>Adding a response stage</h2>
+<p>Latent opinions need not coincide with what agents express. A
+response function maps the latent state to manifest responses. SINT
+provides two constructors, which return functions with arguments
+<code>(t, y, P)</code>.</p>
+<p><code>response_logistic()</code> gives binary responses with <span class="math inline">\(\Pr(P_i = 1) = \mathrm{logit}^{-1}(\beta_i (y_i -
+\delta) + \gamma_i S_i)\)</span>, where <span class="math inline">\(S_i\)</span> is a normative pressure. With
+<code>stochastic = FALSE</code> it returns the probabilities:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>f_log <span class="ot">&lt;-</span> <span class="fu">response_logistic</span>(<span class="at">beta =</span> <span class="dv">6</span>, <span class="at">delta =</span> <span class="fl">0.5</span>, <span class="at">stochastic =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">f_log</span>(<span class="dv">1</span>, <span class="at">y =</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.5</span>, <span class="fl">0.9</span>), <span class="at">P =</span> <span class="cn">NULL</span>), <span class="dv">3</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="co">#&gt; [1] 0.083 0.500 0.917</span></span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>f_bin <span class="ot">&lt;-</span> <span class="fu">response_logistic</span>(<span class="at">beta =</span> <span class="dv">6</span>, <span class="at">delta =</span> <span class="fl">0.5</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a><span class="fu">f_bin</span>(<span class="dv">1</span>, <span class="at">y =</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.5</span>, <span class="fl">0.9</span>), <span class="at">P =</span> <span class="cn">NULL</span>)</span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a><span class="co">#&gt; [1] 0 1 1</span></span></code></pre></div>
+<p><code>response_threshold()</code> gives ternary responses: with <span class="math inline">\(z_i = \beta_i (y_i - \delta) + \gamma_i
+S_i\)</span>, agent <span class="math inline">\(i\)</span> expresses
+<span class="math inline">\(+1\)</span> if <span class="math inline">\(z_i &gt; \theta\)</span>, <span class="math inline">\(-1\)</span> if <span class="math inline">\(z_i
+&lt; -\theta\)</span>, and stays silent (0) otherwise. With
+<code>stochastic = TRUE</code> a logistic error is added to <span class="math inline">\(z_i\)</span>, which gives an ordered logit
+model:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>f_thr <span class="ot">&lt;-</span> <span class="fu">response_threshold</span>(<span class="at">delta =</span> <span class="fl">0.5</span>, <span class="at">theta =</span> <span class="fl">0.3</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="fu">f_thr</span>(<span class="dv">1</span>, <span class="at">y =</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.5</span>, <span class="fl">0.9</span>), <span class="at">P =</span> <span class="cn">NULL</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="co">#&gt; [1] -1  0  1</span></span></code></pre></div>
+<p>The pressure <code>S</code> can be a number, a vector with one value
+per agent, or a function of the previous manifest responses.
+<code>climate_balance()</code> computes the balance between expressed
+support and opposition, <span class="math inline">\((n^+ - n^-) / (n^+ +
+n^- + \epsilon)\)</span>, and is designed for this use:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>f_clim <span class="ot">&lt;-</span> <span class="fu">response_threshold</span>(<span class="at">delta =</span> <span class="fl">0.5</span>, <span class="at">theta =</span> <span class="fl">0.3</span>, <span class="at">gamma =</span> <span class="fl">0.4</span>,</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>                             <span class="at">S =</span> <span class="cf">function</span>(P) <span class="fu">climate_balance</span>(P, <span class="at">eps =</span> <span class="fl">0.1</span>))</span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="fu">f_clim</span>(<span class="dv">1</span>, <span class="at">y =</span> <span class="fu">c</span>(<span class="fl">0.45</span>, <span class="fl">0.5</span>, <span class="fl">0.55</span>), <span class="at">P =</span> <span class="cn">NULL</span>)</span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a><span class="co">#&gt; [1] 0 0 0</span></span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a><span class="fu">f_clim</span>(<span class="dv">1</span>, <span class="at">y =</span> <span class="fu">c</span>(<span class="fl">0.45</span>, <span class="fl">0.5</span>, <span class="fl">0.55</span>), <span class="at">P =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a><span class="co">#&gt; [1] 1 1 1</span></span></code></pre></div>
+<p>In a simulation, pass the response function to
+<code>sint_simulate()</code>. Response functions apply to all agents, so
+a wrapper is useful when some agents, such as external sources, should
+not respond:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>agents <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>f_group <span class="ot">&lt;-</span> <span class="fu">response_threshold</span>(</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>  <span class="at">delta =</span> <span class="fl">0.5</span>, <span class="at">theta =</span> <span class="fl">0.3</span>, <span class="at">gamma =</span> <span class="fl">0.4</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>  <span class="at">S =</span> <span class="cf">function</span>(P) <span class="fu">climate_balance</span>(P[agents], <span class="at">eps =</span> <span class="fl">0.1</span>)</span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>)</span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a>respond <span class="ot">&lt;-</span> <span class="cf">function</span>(t, y, P) {</span>
+<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">f_group</span>(t, y, P)</span>
+<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a>  out[<span class="sc">-</span>agents] <span class="ot">&lt;-</span> <span class="dv">0</span><span class="dt">L</span></span>
+<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a>  out</span>
+<span id="cb20-10"><a href="#cb20-10" tabindex="-1"></a>}</span>
+<span id="cb20-11"><a href="#cb20-11" tabindex="-1"></a>sim_r <span class="ot">&lt;-</span> <span class="fu">sint_simulate</span>(W_src, lambda_campaign, y0_src, <span class="at">steps =</span> <span class="dv">8</span>,</span>
+<span id="cb20-12"><a href="#cb20-12" tabindex="-1"></a>                       <span class="at">response =</span> respond)</span>
+<span id="cb20-13"><a href="#cb20-13" tabindex="-1"></a>sim_r<span class="sc">$</span>P[, agents]</span>
+<span id="cb20-14"><a href="#cb20-14" tabindex="-1"></a><span class="co">#&gt;        A B C D</span></span>
+<span id="cb20-15"><a href="#cb20-15" tabindex="-1"></a><span class="co">#&gt;  [1,] -1 0 0 1</span></span>
+<span id="cb20-16"><a href="#cb20-16" tabindex="-1"></a><span class="co">#&gt;  [2,]  0 0 0 1</span></span>
+<span id="cb20-17"><a href="#cb20-17" tabindex="-1"></a><span class="co">#&gt;  [3,]  1 0 1 1</span></span>
+<span id="cb20-18"><a href="#cb20-18" tabindex="-1"></a><span class="co">#&gt;  [4,]  1 1 1 1</span></span>
+<span id="cb20-19"><a href="#cb20-19" tabindex="-1"></a><span class="co">#&gt;  [5,]  1 1 1 1</span></span>
+<span id="cb20-20"><a href="#cb20-20" tabindex="-1"></a><span class="co">#&gt;  [6,]  1 1 1 1</span></span>
+<span id="cb20-21"><a href="#cb20-21" tabindex="-1"></a><span class="co">#&gt;  [7,]  1 1 1 1</span></span>
+<span id="cb20-22"><a href="#cb20-22" tabindex="-1"></a><span class="co">#&gt;  [8,]  1 1 1 1</span></span>
+<span id="cb20-23"><a href="#cb20-23" tabindex="-1"></a><span class="co">#&gt;  [9,]  1 1 1 1</span></span></code></pre></div>
+<p>The manifest state can in turn shape influence. In this variant
+agents give more weight to others who express an opinion than to silent
+ones:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>W_visible <span class="ot">&lt;-</span> <span class="cf">function</span>(t, y, P) {</span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>  visibility <span class="ot">&lt;-</span> <span class="fl">0.2</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> <span class="fu">abs</span>(P)</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>  <span class="fu">row_normalize</span>(<span class="fu">sweep</span>(raw_src, <span class="dv">2</span>, visibility, <span class="st">`</span><span class="at">*</span><span class="st">`</span>))</span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a>}</span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a>sim_v <span class="ot">&lt;-</span> <span class="fu">sint_simulate</span>(W_visible, lambda_campaign, y0_src, <span class="at">steps =</span> <span class="dv">8</span>,</span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a>                       <span class="at">response =</span> respond)</span>
+<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a>sim_v<span class="sc">$</span>P[, agents]</span>
+<span id="cb21-8"><a href="#cb21-8" tabindex="-1"></a><span class="co">#&gt;        A B C D</span></span>
+<span id="cb21-9"><a href="#cb21-9" tabindex="-1"></a><span class="co">#&gt;  [1,] -1 0 0 1</span></span>
+<span id="cb21-10"><a href="#cb21-10" tabindex="-1"></a><span class="co">#&gt;  [2,] -1 0 0 1</span></span>
+<span id="cb21-11"><a href="#cb21-11" tabindex="-1"></a><span class="co">#&gt;  [3,]  0 0 0 1</span></span>
+<span id="cb21-12"><a href="#cb21-12" tabindex="-1"></a><span class="co">#&gt;  [4,]  1 0 1 1</span></span>
+<span id="cb21-13"><a href="#cb21-13" tabindex="-1"></a><span class="co">#&gt;  [5,]  1 1 1 1</span></span>
+<span id="cb21-14"><a href="#cb21-14" tabindex="-1"></a><span class="co">#&gt;  [6,]  1 1 1 1</span></span>
+<span id="cb21-15"><a href="#cb21-15" tabindex="-1"></a><span class="co">#&gt;  [7,]  1 1 1 1</span></span>
+<span id="cb21-16"><a href="#cb21-16" tabindex="-1"></a><span class="co">#&gt;  [8,]  1 1 1 1</span></span>
+<span id="cb21-17"><a href="#cb21-17" tabindex="-1"></a><span class="co">#&gt;  [9,]  1 1 1 1</span></span></code></pre></div>
+</div>
+<div id="aggregating-outcomes" class="section level2">
+<h2>Aggregating outcomes</h2>
+<p><code>aggregate_quota()</code> maps manifest responses to a
+collective outcome. It returns 1 when the number of responses equal to 1
+exceeds a quota of the group, and 0 otherwise; abstentions and opposing
+responses count as not in favor. Applied to a matrix, it returns one
+outcome per time step:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="fu">aggregate_quota</span>(sim_r<span class="sc">$</span>P[, agents])</span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="co">#&gt; [1] 0 0 1 1 1 1 1 1 1</span></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="fu">aggregate_quota</span>(sim_r<span class="sc">$</span>P[, agents], <span class="at">quota =</span> <span class="dv">3</span> <span class="sc">/</span> <span class="dv">4</span>)</span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="co">#&gt; [1] 0 0 0 1 1 1 1 1 1</span></span></code></pre></div>
+</div>
+<div id="timing-conventions-in-sint_simulate" class="section level2">
+<h2>Timing conventions in <code>sint_simulate()</code></h2>
+<p>At each step from <span class="math inline">\(t\)</span> to <span class="math inline">\(t + 1\)</span>, <code>sint_simulate()</code>:</p>
+<ol style="list-style-type: decimal">
+<li>calls <code>W(t, y, P)</code> and <code>lambda(t, y, P)</code> with
+the state at time <span class="math inline">\(t\)</span>;</li>
+<li>computes <span class="math inline">\(y(t+1) = \Lambda(t) W(t) y(t) +
+(I - \Lambda(t)) y(0)\)</span>;</li>
+<li>calls <code>response(t + 1, y, P)</code> with the new latent state
+<span class="math inline">\(y(t+1)\)</span> and the previous manifest
+state <span class="math inline">\(P(t)\)</span>.</li>
+</ol>
+<p>When <code>P0</code> is not supplied, the initial manifest state is
+<code>response(0, y0, NULL)</code>. Response functions built with
+<code>response_logistic()</code> or <code>response_threshold()</code>
+treat a functional pressure as 0 when there is no previous manifest
+state. The anchor <span class="math inline">\(y(0)\)</span> is always
+the initial opinion vector <code>y0</code>.</p>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2 class="unnumbered">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-altafini_2013" class="csl-entry">
+Altafini, Claudio. 2013. <span>“Consensus Problems on Networks with
+Antagonistic Interactions.”</span> <em>IEEE Transactions on Automatic
+Control</em> 58 (4): 935–46. <a href="https://doi.org/10.1109/TAC.2012.2224251">https://doi.org/10.1109/TAC.2012.2224251</a>.
+</div>
+<div id="ref-degroot1974" class="csl-entry">
+DeGroot, Morris H. 1974. <span>“Reaching a Consensus.”</span>
+<em>Journal of the American Statistical Association</em> 69 (345):
+118–21. <a href="https://doi.org/10.1080/01621459.1974.10480137">https://doi.org/10.1080/01621459.1974.10480137</a>.
+</div>
+<div id="ref-friedkin1990" class="csl-entry">
+Friedkin, Noah E., and Eugene C. Johnsen. 1990. <span>“Social Influence
+and Opinions.”</span> <em>Journal of Mathematical Sociology</em> 15
+(3-4): 193–206. <a href="https://doi.org/10.1080/0022250X.1990.9990069">https://doi.org/10.1080/0022250X.1990.9990069</a>.
+</div>
+<div id="ref-friedkin1999" class="csl-entry">
+Friedkin, Noah E., and Eugene C. Johnsen. 1999. <span>“Social Influence
+Networks and Opinion Change.”</span> <em>Advances in Group
+Processes</em> 16: 1–29.
+</div>
+<div id="ref-parsegov2017" class="csl-entry">
+Parsegov, Sergey E., Anton V. Proskurnikov, Roberto Tempo, and Noah E.
+Friedkin. 2017. <span>“Novel Multidimensional Models of Opinion Dynamics
+in Social Networks.”</span> <em>IEEE Transactions on Automatic
+Control</em> 62 (5): 2270–85. <a href="https://doi.org/10.1109/TAC.2016.2613905">https://doi.org/10.1109/TAC.2016.2613905</a>.
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
